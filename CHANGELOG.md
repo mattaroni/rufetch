@@ -11,9 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing (yet).
 
+## [0.2.0] - 2026-05-31
+
+### Added
+
+- Option to write to stdout instead of a file.
+
+### Changed
+
+- Rename argument `--filename` to `--output`.
+- Write to stdout by default.
+
+### Removed
+
+- Print message describing download time.
+
 ## [0.1.1] - 2026-05-30
 
-### Change
+### Changed
 
 - Use consistent sentence casing in help message.
 
@@ -25,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Two downloading modes: *linear* and *streamed*.
 - Option to rename the downloaded file.
 
-[unreleased]: https://github.com/mattaroni/rufetch/compare/v0.1.1...HEAD
+[unreleased]: https://github.com/mattaroni/rufetch/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/mattaroni/rufetch/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/mattaroni/rufetch/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mattaroni/rufetch/releases/tag/v0.1.0

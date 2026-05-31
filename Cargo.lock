@@ -1010,7 +1010,7 @@ dependencies = [
 
 [[package]]
 name = "rufetch"
-version = "0.2.0-alpha"
+version = "0.2.0"
 dependencies = [
  "clap",
  "futures-util",
