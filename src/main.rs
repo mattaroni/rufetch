@@ -42,7 +42,7 @@ async fn try_main() -> Result<(), Box<dyn Error>> {
 }
 
 async fn decide_output(filename: Option<String>) -> Result<Output, io::Error> {
-    let output: Pin<Box<dyn AsyncWrite>> = match filename {
+    let output: Output = match filename {
         Some(x) => Box::pin(File::create(x).await?),
         None => Box::pin(io::stdout()),
     };
