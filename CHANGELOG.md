@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Nothing (yet).
 
+## [0.1.1] - 2026-05-30
+
+### Change
+
+- Use consistent sentence casing in help message.
+
 ## [0.1.0] - 2026-05-29
 
 ### Added
@@ -19,5 +25,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Two downloading modes: *linear* and *streamed*.
 - Option to rename the downloaded file.
 
-[unreleased]: https://github.com/mattaroni/rufetch/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/mattaroni/rufetch/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/mattaroni/rufetch/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/mattaroni/rufetch/releases/tag/v0.1.0
