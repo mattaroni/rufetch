@@ -1,8 +1,10 @@
-use std::pin::Pin;
+use std::{error::Error, pin::Pin};
 use clap::Parser;
 use tokio::{fs::File, io::{self, AsyncWrite}};
 
 mod downloaders;
+
+type Output = Pin<Box<dyn AsyncWrite>>;
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -20,29 +22,27 @@ struct Cli {
 
 #[tokio::main]
 async fn main() {
-    let args = Cli::parse();
-    let output = match decide_output(args.output).await {
-        Ok(x) => x,
-        Err(e) => {
-            eprintln!("ERROR: {e}");
-            return
-        },
-    };
-
-    let result = if args.stream {
-        downloaders::streamed_download(args.url, output).await
-    } else {
-        downloaders::linear_download(args.url, output).await
-    };
-
-    match result {
+    match try_main().await {
         Ok(_) => (),
         Err(e) => eprintln!("ERROR: {e}"),
     }
 }
 
-async fn decide_output(output_name: Option<String>) -> Result<Pin<Box<dyn AsyncWrite>>, io::Error> {
-    let output: Pin<Box<dyn AsyncWrite>> = match output_name {
+async fn try_main() -> Result<(), Box<dyn Error>> {
+    let args = Cli::parse();
+    let output = decide_output(args.output).await?;
+
+    if args.stream {
+        downloaders::streamed_download(args.url, output).await?;
+        return Ok(())
+    }
+
+    downloaders::linear_download(args.url, output).await?;
+    Ok(())
+}
+
+async fn decide_output(filename: Option<String>) -> Result<Output, io::Error> {
+    let output: Pin<Box<dyn AsyncWrite>> = match filename {
         Some(x) => Box::pin(File::create(x).await?),
         None => Box::pin(io::stdout()),
     };
