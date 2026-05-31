@@ -5,11 +5,11 @@ mod downloaders;
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Cli {
-    /// rename the downloaded file
+    /// Rename the downloaded file
     #[clap(short, long)]
     filename: Option<String>,
 
-    /// use a streamed downloader, instead of a linear downloader
+    /// Use a streamed downloader, instead of a linear downloader
     #[clap(short, long)]
     stream: bool,
 
