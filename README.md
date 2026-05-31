@@ -14,5 +14,5 @@ A minimalistic <abbr>CLI</abbr> file downloader, powered by Rust.
 Use the command below to compile and install the binary.
 
 ```
-cargo install https://github.com/mattaroni/rufetch.git
+cargo install --git https://github.com/mattaroni/rufetch.git
 ```
