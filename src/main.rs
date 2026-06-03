@@ -1,9 +1,10 @@
-use std::{error::Error, pin::Pin};
+use std::{error, pin::Pin};
 use clap::Parser;
 use tokio::{fs::File, io::{self, AsyncWrite}};
 
 mod downloaders;
 
+type Error = Box<dyn error::Error>;
 type Output = Pin<Box<dyn AsyncWrite>>;
 
 #[derive(Parser, Debug)]
@@ -21,14 +22,7 @@ struct Cli {
 }
 
 #[tokio::main]
-async fn main() {
-    match try_main().await {
-        Ok(_) => (),
-        Err(e) => eprintln!("ERROR: {e}"),
-    }
-}
-
-async fn try_main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), Error> {
     let args = Cli::parse();
     let output = decide_output(args.output).await?;
 
