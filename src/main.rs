@@ -1,11 +1,8 @@
-use std::{error, pin::Pin};
+use std::pin::Pin;
 use clap::Parser;
 use tokio::{fs::File, io::{self, AsyncWrite}};
 
 mod downloaders;
-
-type Error = Box<dyn error::Error>;
-type Output = Pin<Box<dyn AsyncWrite>>;
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -22,24 +19,23 @@ struct Cli {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() {
     let args = Cli::parse();
-    let output = decide_output(args.output).await?;
 
-    if args.stream {
-        downloaders::streamed_download(args.url, output).await?;
-        return Ok(())
-    }
+    let runner = async || {
+        let output: Pin<Box<dyn AsyncWrite>> = match args.output {
+            Some(x) => Box::pin(File::create(x).await?),
+            None => Box::pin(io::stdout()),
+        };
 
-    downloaders::linear_download(args.url, output).await?;
-    Ok(())
-}
+        if args.stream {
+            return downloaders::streamed_download(args.url, output).await;
+        }
 
-async fn decide_output(filename: Option<String>) -> Result<Output, io::Error> {
-    let output: Output = match filename {
-        Some(x) => Box::pin(File::create(x).await?),
-        None => Box::pin(io::stdout()),
+        downloaders::linear_download(args.url, output).await
     };
 
-    Ok(output)
+    if let Err(e) = runner().await {
+        println!("error: {e}");
+    }
 }
