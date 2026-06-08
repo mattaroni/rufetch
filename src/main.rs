@@ -1,6 +1,10 @@
 use std::pin::Pin;
+
 use clap::Parser;
-use tokio::{fs::File, io::{self, AsyncWrite}};
+use tokio::{
+    fs::File,
+    io::{self, AsyncWrite},
+};
 
 mod downloaders;
 
