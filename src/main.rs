@@ -1,6 +1,6 @@
 use clap::Parser;
 
-mod downloaders;
+mod downloader;
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
@@ -16,7 +16,7 @@ struct Cli {
 async fn main() {
     let args = Cli::parse();
 
-    if let Err(e) = downloaders::download(args.url, args.output).await {
+    if let Err(e) = downloader::download(args.url, args.output).await {
         println!("error: {e}");
     }
 }
