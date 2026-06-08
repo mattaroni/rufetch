@@ -1,12 +1,17 @@
-use std::{error, pin::Pin};
+use std::{error::Error, pin::Pin};
 
 use futures_util::StreamExt;
-use tokio::io::{AsyncWrite, AsyncWriteExt, BufWriter};
+use tokio::{
+    fs::File,
+    io::{self, AsyncWrite, AsyncWriteExt, BufWriter},
+};
 
-type Error = Box<dyn error::Error>;
-type Output = Pin<Box<dyn AsyncWrite>>;
+pub async fn download(url: String, output: Option<String>) -> Result<(), Box<dyn Error>> {
+    let output: Pin<Box<dyn AsyncWrite>> = match output {
+        Some(path) => Box::pin(File::create(path).await?),
+        None => Box::pin(io::stdout()),
+    };
 
-pub async fn download(url: String, output: Output) -> Result<(), Error> {
     let mut buffer = BufWriter::new(output);
     let mut stream = reqwest::get(url).await?.bytes_stream();
 
