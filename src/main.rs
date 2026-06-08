@@ -15,10 +15,6 @@ struct Cli {
     #[clap(short, long)]
     output: Option<String>,
 
-    /// Use a streamed downloader, instead of a linear downloader
-    #[clap(short, long)]
-    stream: bool,
-
     url: String,
 }
 
@@ -32,11 +28,7 @@ async fn main() {
             None => Box::pin(io::stdout()),
         };
 
-        if args.stream {
-            return downloaders::streamed_download(args.url, output).await;
-        }
-
-        downloaders::linear_download(args.url, output).await
+        downloaders::download(args.url, output).await
     };
 
     if let Err(e) = runner().await {
