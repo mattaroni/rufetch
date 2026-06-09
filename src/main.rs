@@ -7,6 +7,7 @@ use tokio::{
     io::{self, AsyncWrite, AsyncWriteExt, BufWriter},
 };
 
+/// Command-line arguments passed to the application.
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Cli {
@@ -18,6 +19,7 @@ struct Cli {
     url: String,
 }
 
+/// Runs the application.
 #[tokio::main]
 async fn main() {
     let args = Cli::parse();
@@ -27,6 +29,7 @@ async fn main() {
     }
 }
 
+/// Read the contents of a remote file and write it to either stdout or a file.
 pub async fn download(url: String, output: Option<String>) -> Result<(), Box<dyn Error>> {
     let output: Pin<Box<dyn AsyncWrite>> = match output {
         Some(path) => Box::pin(File::create(path).await?),
