@@ -10,10 +10,11 @@ use tokio::{
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Cli {
-    /// Rename the downloaded file
+    /// Write to a file instead of stdout
     #[clap(short, long)]
     output: Option<String>,
 
+    /// HTTP(S) address to the online file
     url: String,
 }
 
