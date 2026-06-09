@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Loading bar for downloading files (NOTE: not shown when writing to stdout).
 - Option to remove the aforementioned loading bar.
 
 ### Removed
