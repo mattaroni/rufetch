@@ -30,7 +30,7 @@ async fn main() {
 }
 
 /// Read the contents of a remote file and write it to either stdout or a file.
-pub async fn download(url: String, output: Option<String>) -> Result<(), Box<dyn Error>> {
+async fn download(url: String, output: Option<String>) -> Result<(), Box<dyn Error>> {
     let output: Pin<Box<dyn AsyncWrite>> = match output {
         Some(path) => Box::pin(File::create(path).await?),
         None => Box::pin(io::stdout()),
