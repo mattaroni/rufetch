@@ -1015,6 +1015,7 @@ dependencies = [
  "clap",
  "futures-util",
  "reqwest",
+ "thiserror",
  "tokio",
 ]
 
