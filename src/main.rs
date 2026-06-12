@@ -47,13 +47,14 @@ async fn download(url: String, output: Option<String>) -> Result<(), AsyncError>
     let to_file_error = |e: io::Error| AsyncError::CannotCreateFile(e.kind());
     let to_writing_error = |e: io::Error| AsyncError::WritngFailure(e.kind());
 
+    let mut stream = reqwest::get(url).await?.bytes_stream();
+
     let output: Pin<Box<dyn AsyncWrite>> = match output {
         Some(path) => Box::pin(File::create(path).await.map_err(to_file_error)?),
         None => Box::pin(io::stdout()),
     };
 
     let mut buffer = BufWriter::new(output);
-    let mut stream = reqwest::get(url).await?.bytes_stream();
 
     while let Some(item) = stream.next().await {
         buffer.write_all(&item?).await.map_err(to_writing_error)?;
