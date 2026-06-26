@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Progress meter, for tracking the progress of file downloads.
 - Merged IO-related error messages into a single error kind.
--
 
 ## [0.3.1] - 2026-06-11
 
