@@ -1,23 +1,19 @@
-use std::pin::Pin;
-
 use clap::Parser;
 use futures_util::StreamExt;
+use reqwest::Response;
 use thiserror::Error;
 use tokio::{
     fs::File,
-    io::{self, AsyncWrite, AsyncWriteExt, BufWriter},
+    io::{self, AsyncWriteExt, BufWriter, Stdout},
 };
 
 #[derive(Error, Debug)]
 enum AsyncError {
-    #[error("cannot create file - {0}")]
-    CannotCreateFile(io::ErrorKind),
-
-    #[error("failed to read remote file from URL")]
+    #[error("GET request failed")]
     RequestError(#[from] reqwest::Error),
 
-    #[error("failed to write data - {0}")]
-    WritngFailure(io::ErrorKind),
+    #[error("failed to write data; {0}")]
+    IoError(#[from] io::Error),
 }
 
 /// Command-line arguments passed to the application.
@@ -42,24 +38,99 @@ async fn main() {
     }
 }
 
-/// Reads the contents of a remote file and write it to either stdout or a file.
-async fn download(url: String, output: Option<String>) -> Result<(), AsyncError> {
-    let to_file_error = |e: io::Error| AsyncError::CannotCreateFile(e.kind());
-    let to_writing_error = |e: io::Error| AsyncError::WritngFailure(e.kind());
+struct ProgressTracker {
+    total_size: u64,
+    current_size: u64,
+    printer: BufWriter<Stdout>,
+}
 
-    let mut stream = reqwest::get(url).await?.bytes_stream();
+impl ProgressTracker {
+    fn new(total_size: u64) -> Self {
+        let current_size = 0;
+        let printer = BufWriter::new(io::stdout());
 
-    let output: Pin<Box<dyn AsyncWrite>> = match output {
-        Some(path) => Box::pin(File::create(path).await.map_err(to_file_error)?),
-        None => Box::pin(io::stdout()),
-    };
-
-    let mut buffer = BufWriter::new(output);
-
-    while let Some(item) = stream.next().await {
-        buffer.write_all(&item?).await.map_err(to_writing_error)?;
+        Self {
+            total_size,
+            current_size,
+            printer,
+        }
     }
 
-    buffer.flush().await.map_err(to_writing_error)?;
+    async fn update_and_print(&mut self, size_increase: usize) -> Result<(), AsyncError> {
+        self.current_size += size_increase as u64;
+        let percent = self.current_size * 100 / self.total_size;
+        let message = format!("\rDownload: {percent}% complete");
+        self.printer.write_all(message.as_bytes()).await?;
+        self.printer.flush().await?;
+
+        Ok(())
+    }
+
+    async fn finish(&mut self) -> Result<(), AsyncError> {
+        self.printer.write_all(b"\n").await?;
+        self.printer.flush().await?;
+
+        Ok(())
+    }
+}
+
+async fn download(url: String, output: Option<String>) -> Result<(), AsyncError> {
+    let response = reqwest::get(url).await?;
+
+    match output {
+        Some(path) => download_to_file(response, path).await,
+        None => download_to_stdout(response).await,
+    }
+}
+
+async fn download_to_file(response: Response, path: String) -> Result<(), AsyncError> {
+    let mut progress_tracker = get_content_length(&response).map(ProgressTracker::new);
+
+    if progress_tracker.is_none() {
+        println!("warning: cannot determine file size");
+    }
+
+    let mut stream = response.bytes_stream();
+
+    let file = File::create(path).await?;
+    let mut buffer = BufWriter::new(file);
+
+    while let Some(item) = stream.next().await {
+        let chunk = item?;
+        buffer.write_all(&chunk).await?;
+
+        if let Some(tracker) = progress_tracker.as_mut() {
+            tracker.update_and_print(chunk.len()).await?;
+        }
+    }
+
+    buffer.flush().await?;
+
+    if let Some(tracker) = progress_tracker.as_mut() {
+        tracker.finish().await?;
+    }
+
     Ok(())
+}
+
+async fn download_to_stdout(response: Response) -> Result<(), AsyncError> {
+    let mut stream = response.bytes_stream();
+    let mut buffer = BufWriter::new(io::stdout());
+
+    while let Some(item) = stream.next().await {
+        buffer.write_all(&item?).await?;
+    }
+
+    buffer.flush().await?;
+    Ok(())
+}
+
+fn get_content_length(response: &Response) -> Option<u64> {
+    response
+        .headers()
+        .get("content-length")?
+        .to_str()
+        .ok()?
+        .parse()
+        .ok()
 }
